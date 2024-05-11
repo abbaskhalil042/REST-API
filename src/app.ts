@@ -1,9 +1,14 @@
 import express, { NextFunction, Request, Response } from "express";
 import globalErrorHandlers from "./middlewares/globalErrorHandlers";
+import { userRouter } from "./user/userRouter";
 
 const app = express();
 
 //routes
+
+app.use("/api/users",userRouter)
+
+
 
 app.get("/", (req: Request, res: Response, next: NextFunction) => {
  
