@@ -3,6 +3,7 @@ import globalErrorHandlers from "./middlewares/globalErrorHandlers";
 import { userRouter } from "./user/userRouter";
 
 const app = express();
+app.use(express.json())//^agr tumhe res.json() send karna hai ye important hai- > used for json parsing
 
 //routes
 
