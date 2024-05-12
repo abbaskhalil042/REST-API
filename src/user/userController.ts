@@ -1,7 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import createHttpError from "http-errors";
 import userModel from "./userModel";
-import bcrypt from "bcrypt"
+import bcrypt from "bcrypt";
+import { sign } from "jsonwebtoken";
+import { config } from "../config/config";
 
 const createUser = async (req: Request, res: Response, next: NextFunction) => {
   const { name, email, password } = req.body;
@@ -23,13 +25,23 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
     return next();
   }
 
-
-
   //^ now lets hash the password
 
-  const hashedPass=await bcrypt.hash(password,10) 
+  const hashedPass = await bcrypt.hash(password, 10);
 
-  res.json({ message: "user registered !" });
+  const newUser = await userModel.create({
+    name,
+    email,
+    password: hashedPass,
+  });
+
+  //^token generation
+
+  const token = sign({ sub: newUser._id }, config.jwtSecret as string, {
+    expiresIn: "7d",
+  });
+
+  res.json({ accessToken: token });
 };
 
 export { createUser };
