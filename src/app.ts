@@ -1,6 +1,7 @@
 import express, { NextFunction, Request, Response } from "express";
 import globalErrorHandlers from "./middlewares/globalErrorHandlers";
 import { userRouter } from "./user/userRouter";
+import bookRouter from "./book/bookRouter";
 
 const app = express();
 app.use(express.json())//^agr tumhe res.json() send karna hai ye important hai- > used for json parsing
@@ -8,13 +9,7 @@ app.use(express.json())//^agr tumhe res.json() send karna hai ye important hai- 
 //routes
 
 app.use("/api/users",userRouter)
-
-
-
-app.get("/", (req: Request, res: Response, next: NextFunction) => {
- 
-  res.json({ message: "welcome to elib apis" });
-});
+app.use("/api/books",bookRouter)
 
 //&*gloabal error handlers
 
