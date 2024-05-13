@@ -66,3 +66,49 @@ try {
 
 };
 
+
+
+//^login user
+ 
+const login=async (req: Request, res: Response, next: NextFunction)=>{
+
+
+  const {email,password}=req.body
+
+  if(!email || !password){
+    return next(createHttpError(400,"All fields are required!"))
+  }
+
+
+  //^find user
+
+  const user=await userModel.findOne({email})
+
+  if(!user)
+    {
+      return next(createHttpError(404,"user not found !"))
+    }
+
+
+    //^password comparison
+
+    const isMatch=await bcrypt.compare(password,user.password)
+
+    if(!isMatch){
+      return next(createHttpError(400,"username and password incorrect !"))
+    }
+
+    //^create access token
+
+    const token=sign({sub:user._id},config.jwtSecret as string,{
+      expiresIn:"7d",
+      algorithm:"HS256"
+    })
+
+  
+  return res.status(200).json({accessToken:token})
+
+}
+
+
+export {createUser,login}
