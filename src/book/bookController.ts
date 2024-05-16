@@ -1,12 +1,13 @@
 import { NextFunction, Request, Response } from "express";
 
-const createBook=async (req: Request, res: Response, next: NextFunction) => {
+const createBook = async (req: Request, res: Response, next: NextFunction) => {
+  // const { }
 
+  console.log("files", req.files);
 
-    // const { }
+  
 
-    res.json({msg:"book created "})
-    
-}
+  res.json({});
+};
 
-export {createBook}
+export { createBook };
