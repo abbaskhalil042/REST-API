@@ -12,4 +12,4 @@ const _config = {
   cloudinarySecret:process.env.CLOUDINARY_SECRET
 };
 
-export const config = Object.freeze(_config); //&readonly ho gya
+export const config = Object.freeze(_config); //^readonly ho gya
