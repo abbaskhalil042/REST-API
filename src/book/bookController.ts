@@ -9,7 +9,7 @@ import { AuthRequest } from "../middlewares/authenticate";
 const createBook = async (req: Request, res: Response, next: NextFunction) => {
   const { title, genre } = req.body;
   const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-  console.log("Files object:", files.coverImage, files.file);
+  // console.log("Files object:", files.coverImage, files.file);
 
   // Check if coverImage and file are present in the files object
   if (!files.coverImage || !files.coverImage[0]) {
@@ -19,14 +19,13 @@ const createBook = async (req: Request, res: Response, next: NextFunction) => {
     return next(createHttpError(400, "Book file is required"));
   }
 
-
   // Mimetype - application/pdf or image
   const coverImageMimeType = files.coverImage[0].mimetype.split("/").pop();
-  console.log("Cover image mimetype:", coverImageMimeType);
+  // console.log("Cover image mimetype:", coverImageMimeType);
 
   // File name
   const fileName = files.coverImage[0].filename;
-  console.log("Cover image filename:", fileName);
+  // console.log("Cover image filename:", fileName);
 
   // File path
   const filePath = path.resolve(
@@ -34,7 +33,7 @@ const createBook = async (req: Request, res: Response, next: NextFunction) => {
     "../../public/data/uploads", // From book directory to public
     fileName
   );
-  console.log("Cover image file path:", filePath);
+  // console.log("Cover image file path:", filePath);
 
   try {
     const uploadResult = await cloudinary.uploader.upload(filePath, {
@@ -42,7 +41,7 @@ const createBook = async (req: Request, res: Response, next: NextFunction) => {
       folder: "book-covers",
       format: coverImageMimeType,
     });
-    console.log("Cover image upload result:", uploadResult);
+    // console.log("Cover image upload result:", uploadResult);
 
     //^ PDF book upload
     const bookFileName = files.file[0].filename;
@@ -51,7 +50,7 @@ const createBook = async (req: Request, res: Response, next: NextFunction) => {
       "../../public/data/uploads",
       bookFileName
     );
-    console.log("Book file path:", bookFilePath);
+    // console.log("Book file path:", bookFilePath);
 
     const bookFileResult = await cloudinary.uploader.upload(bookFilePath, {
       resource_type: "raw",
@@ -59,7 +58,7 @@ const createBook = async (req: Request, res: Response, next: NextFunction) => {
       folder: "book-files",
       format: "pdf",
     });
-    console.log("Book file upload result:", bookFileResult);
+    // console.log("Book file upload result:", bookFileResult);
 
     //@ts-ignore //*ignore the error
     // console.log(req.userId);
@@ -108,9 +107,8 @@ const updateBook = async (req: Request, res: Response, next: NextFunction) => {
 
   // const {file, coverImage} = req.files as { [fieldname: string]: Express.Multer.File[] };
 
-
   // const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-  // console.log("update book files: ", files.coverImage, files.file); 
+  // console.log("update book files: ", files.coverImage, files.file);
 
   try {
     const book = await bookModel.findOne({ _id: bookId });
@@ -150,13 +148,12 @@ const updateBook = async (req: Request, res: Response, next: NextFunction) => {
     let completeFileName = "";
 
     if (files.file) {
-  
       const bookFilePath = path.resolve(
         __dirname,
-        "../../public/data/uploads"+files.file[0].filename,
+        "../../public/data/uploads" + files.file[0].filename
       );
       const bookFileName = files.file[0].filename;
-      completeFileName=bookFileName;
+      completeFileName = bookFileName;
       const uploadResultPdf = await cloudinary.uploader.upload(bookFilePath, {
         resource_type: "raw",
         filename_override: completeFileName,
@@ -166,7 +163,6 @@ const updateBook = async (req: Request, res: Response, next: NextFunction) => {
 
       completeFileName = uploadResultPdf.secure_url;
       await fs.promises.unlink(bookFilePath);
-    
     }
 
     const updatedBook = await bookModel.findOneAndUpdate(
@@ -174,36 +170,88 @@ const updateBook = async (req: Request, res: Response, next: NextFunction) => {
       {
         title: title,
         genre: genre,
-        coverImage: completeCoverImage ? completeCoverImage:book.coverImage,
-        file: completeFileName?completeFileName:book.file,
+        coverImage: completeCoverImage ? completeCoverImage : book.coverImage,
+        file: completeFileName ? completeFileName : book.file,
       },
       { new: true }
     );
 
     res.json({ updatedBook });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     next(createHttpError(500, "Error in updating book"));
   }
 };
 
-
-
-const listBook=async(req:Request,res:Response,next:NextFunction)=>{
-
+const listBook = async (req: Request, res: Response, next: NextFunction) => {
   //*add pagination ......... with mongoosePagination package
-  const books=await bookModel.find();//it returns all books
-
+  const books = await bookModel.find(); //it returns all books
   res.status(200).json(books);
 
   try {
-    
   } catch (error) {
-
     return next(createHttpError(500, "Error in finding book"));
-    
   }
-  res.json({msg:"list book"});
-}
+  res.json({ msg: "list book" });
+};
 
-export { createBook, updateBook, listBook };
+//* get single book
+
+const getSigleBook = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { bookId } = req.params;
+  try {
+    const book = await bookModel.findById(bookId);
+    if (!book) {
+      return next(createHttpError(404, "Book not found"));
+    }
+
+    return res.status(200).json(book);
+  } catch (error) {
+    return next(createHttpError(500, "Error in finding book"));
+  }
+  // res.status(200).json({ msg: "get single book" });
+};
+
+const deleteBook = async (req: Request, res: Response, next: NextFunction) => {
+  const { bookId } = req.params;
+
+  try {
+    const book = await bookModel.findById(bookId);
+    if (!book) {
+      return next(createHttpError(404, "Book not found"));
+    }
+
+    const _req = req as AuthRequest;
+    if (book.author.toString() !== _req.userId) {
+      return next(createHttpError(403, "You cannot delete  others' book"));
+    }
+
+    const coverFileSplits = book.coverImage.split("/");
+    const coverImagePublicId =
+      coverFileSplits.at(-2) + "/" + coverFileSplits.at(-1)?.split(".").at(-2);
+    // console.log("public image id ", coverImagePublicId);
+
+    const bookFileSplits = book.file.split("/");
+    const bookFilePublicId =
+      bookFileSplits.at(-2) + "/" + bookFileSplits.at(-1);
+
+    // console.log(bookFilePublicId)
+
+    await cloudinary.uploader.destroy(coverImagePublicId);
+    await cloudinary.uploader.destroy(bookFilePublicId, {
+      resource_type: "raw",
+    });
+
+    await bookModel.deleteOne({ _id: bookId });
+
+    return res.status(204).json({ msg: "Book deleted successfully" }); //*204 for deleted
+  } catch (error) {
+    return next(createHttpError(500, "Error in deleting book"));
+  }
+};
+
+export { createBook, updateBook, listBook, getSigleBook, deleteBook };
