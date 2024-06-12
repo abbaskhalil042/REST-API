@@ -187,4 +187,23 @@ const updateBook = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-export { createBook, updateBook };
+
+
+const listBook=async(req:Request,res:Response,next:NextFunction)=>{
+
+  //*add pagination ......... with mongoosePagination package
+  const books=await bookModel.find();//it returns all books
+
+  res.status(200).json(books);
+
+  try {
+    
+  } catch (error) {
+
+    return next(createHttpError(500, "Error in finding book"));
+    
+  }
+  res.json({msg:"list book"});
+}
+
+export { createBook, updateBook, listBook };
