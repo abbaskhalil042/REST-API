@@ -2,10 +2,14 @@ import { NextFunction, Request, Response } from "express";
 import cloudinary from "../config/cloudinary";
 import createHttpError from "http-errors";
 import path from "path";
+import bookModel from "./bookModel";
+import fs from "node:fs"
 
 const createBook = async (req: Request, res: Response, next: NextFunction) => {
+
+  const {title,genre}=req.body
   const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-  console.log("Files object:", files);
+  // console.log("Files object:", files);
 
   // Check if coverImage and file are present in the files object
   if (!files.coverImage || !files.coverImage[0]) {
@@ -58,7 +62,22 @@ const createBook = async (req: Request, res: Response, next: NextFunction) => {
 
     // Create book logic here
 
-    res.json({ message: "Book created successfully" });
+    const newBook=await bookModel.create({
+      title,
+      genre,
+      author:"6641565a41c517960578959d",
+      coverImage: uploadResult.secure_url,
+      file: bookFileResult.secure_url,
+    
+    })
+
+    //^ delete file after upload
+
+    await fs.promises.unlink(filePath);//*server se delete ho jayega but cloud se nahi
+    await fs.promises.unlink(bookFilePath);
+
+
+    res.status(201).json({ id: newBook._id });
   } catch (error: any) {
     console.error("Error during file upload:", error);
 
