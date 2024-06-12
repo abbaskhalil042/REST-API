@@ -3,11 +3,10 @@ import cloudinary from "../config/cloudinary";
 import createHttpError from "http-errors";
 import path from "path";
 import bookModel from "./bookModel";
-import fs from "node:fs"
+import fs from "node:fs";
 
 const createBook = async (req: Request, res: Response, next: NextFunction) => {
-
-  const {title,genre}=req.body
+  const { title, genre } = req.body;
   const files = req.files as { [fieldname: string]: Express.Multer.File[] };
   // console.log("Files object:", files);
 
@@ -60,22 +59,21 @@ const createBook = async (req: Request, res: Response, next: NextFunction) => {
     });
     console.log("Book file upload result:", bookFileResult);
 
-    // Create book logic here
 
-    const newBook=await bookModel.create({
+    //@ts-ignore //*ignore the error
+    console.log(req.userId);
+    const newBook = await bookModel.create({
       title,
       genre,
-      author:"6641565a41c517960578959d",
+      author: "6641565a41c517960578959d",
       coverImage: uploadResult.secure_url,
       file: bookFileResult.secure_url,
-    
-    })
+    });
 
     //^ delete file after upload
 
-    await fs.promises.unlink(filePath);//*server se delete ho jayega but cloud se nahi
+    await fs.promises.unlink(filePath); //*server se delete ho jayega but cloud se nahi
     await fs.promises.unlink(bookFilePath);
-
 
     res.status(201).json({ id: newBook._id });
   } catch (error: any) {
