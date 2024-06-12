@@ -4,6 +4,7 @@ import createHttpError from "http-errors";
 import path from "path";
 import bookModel from "./bookModel";
 import fs from "node:fs";
+import { AuthRequest } from "../middlewares/authenticate";
 
 const createBook = async (req: Request, res: Response, next: NextFunction) => {
   const { title, genre } = req.body;
@@ -61,11 +62,14 @@ const createBook = async (req: Request, res: Response, next: NextFunction) => {
 
 
     //@ts-ignore //*ignore the error
-    console.log(req.userId);
+    // console.log(req.userId);
+
+    const _req=req as AuthRequest;//* either do this or you can make the req:AuthRequest in main function
+
     const newBook = await bookModel.create({
       title,
       genre,
-      author: "6641565a41c517960578959d",
+      author:_req.userId,
       coverImage: uploadResult.secure_url,
       file: bookFileResult.secure_url,
     });
