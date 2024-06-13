@@ -204,7 +204,7 @@ const getSigleBook = async (
 ) => {
   const { bookId } = req.params;
   try {
-    const book = await bookModel.findById(bookId);
+    const book = await bookModel.findOne({ _id: bookId }).populate("author","name");
     if (!book) {
       return next(createHttpError(404, "Book not found"));
     }
