@@ -185,7 +185,7 @@ const updateBook = async (req: Request, res: Response, next: NextFunction) => {
 
 const listBook = async (req: Request, res: Response, next: NextFunction) => {
   //*add pagination ......... with mongoosePagination package
-  const books = await bookModel.find(); //it returns all books
+  const books = await bookModel.find().populate("author", "name"); //it returns all books
   res.status(200).json(books);
 
   try {

@@ -10,6 +10,7 @@ const bookSchema = new mongoose.Schema<Book>(
 
     author: {
       type: mongoose.Schema.ObjectId, //* ko connect karne ka tarika thoda casual hai
+      ref: "User",
       required: true,
     },
     coverImage: {
