@@ -11,8 +11,8 @@ app.use(express.json())//^agr tumhe res.json() send karna hai ye important hai- 
 //routes
 
 app.use(cors({
-    // origin:"http://localhost:3000",
-    origin:config.frontendUrl
+    origin:"http://localhost:5173",
+    // origin:config.frontendUrl
 }))
 app.use("/api/users",userRouter)
 app.use("/api/books",bookRouter)
